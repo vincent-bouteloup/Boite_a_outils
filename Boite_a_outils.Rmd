@@ -129,5 +129,5 @@ output_file = here::here("Output",nomfichier),
 rstudioapi::viewer(here::here("Output",paste(nomfichier,"html",sep='.')))
 ```
 
-
+![](img/img1.jpg)
 
