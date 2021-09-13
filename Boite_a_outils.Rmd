@@ -1,0 +1,133 @@
+---
+title: "Boite à outils R"
+author: "Vincent Bouteloup"
+date: "08/09/2021"
+output: 
+  rmdformats::material:
+    highlight: tango
+---
+
+```{r setup, include=FALSE}
+library(knitr)
+library(rmdformats)
+library(tidyverse)
+library(magrittr)
+
+## Global options
+options(max.print="75")
+opts_chunk$set(echo=TRUE,
+	             cache=TRUE,
+               prompt=FALSE,
+               tidy=TRUE,
+               comment=NA,
+               message=FALSE,
+               warning=FALSE,
+               eval=FALSE,
+               results = "hide")
+opts_knit$set(width=75)
+
+```
+
+
+# Général
+
+## Lancer plusieurs package en même temps
+
+```{r}
+Packages <- c("tidyverse","lubridate", "broom", "kableExtra","hablar", "DT")
+lapply(Packages, library, character.only = TRUE)
+```
+
+## Faire du vide
+
+```{r}
+rm(list=ls())
+rm(list=c("t","t1","t2"))
+gc()
+```
+
+## Sauver/charger environnement
+
+```{r}
+save.image(file = "R/data.Rdata")
+load(file = "R/data.Rdata")
+```
+
+## Piping
+[https://www.r-bloggers.com/2021/09/the-four-pipes-of-magrittr/]
+
+```{r}
+  # créer un graph et une table en même temps
+iris %T>%
+plot %>%
+group_by(Species) %>%
+summarize(MaxSepalLength=max(Sepal.Length), MinSepalLength = min(Sepal.Length))
+
+# Mettre un pipe dans des instructions pas prévues
+iris %$% plot(Sepal.Length, Sepal.Width)
+
+```
+
+
+# Export
+
+## Exporter en CSV tous les éléments d'une liste
+
+```{r}
+
+mylist <- list("KM_NPH_FULL"=KM_NPH_FULL,
+               "KM_NPH_FULL_GRP"=KM_NPH_FULL_GRP,
+               "KM_DC_FULL"=KM_DC_FULL,
+               "KM_DC_FULL_GRP"=KM_DC_FULL_GRP)
+
+lapply(1:length(mylist), function(i) write.csv(mylist[[i]], 
+                                               file = paste0(names(mylist[i]), ".csv"),
+                                               row.names = FALSE))
+```
+
+
+# Description des données
+
+## Description par ordre alphabétique
+
+```{r}
+
+mtcars %>% 
+  select(sort(tidyselect::peek_vars())) %>% 
+  glimpse()
+```
+
+## Description directement sous forme de table
+
+```{r}
+library(summarytools)
+mtcars %>% group_by(cyl) %>% 
+  descr(mpg) %>% tb()
+```
+
+
+# Calculs
+
+## Sommer sur plusieurs colonnes
+
+```{r}
+rowwise() %>% 
+  mutate(NPI=sum(c_across(NPI_SCORE_ACC_A:NPI_SCORE_ACC_L), na.rm=T))
+```
+
+# Markdown
+
+## Créer le fichier html et le faire afficher
+
+```{r}
+nomfichier <- paste("MOVID Rapport analyses",Sys.Date(),sep='_')
+
+rmarkdown::render(input=here::here("R","MOVID_report_v6.Rmd"),
+output_file = here::here("Output",nomfichier),
+                  output_format = "html_document")
+
+rstudioapi::viewer(here::here("Output",paste(nomfichier,"html",sep='.')))
+```
+
+
+
